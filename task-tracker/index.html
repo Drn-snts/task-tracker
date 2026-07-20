@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Task Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="page">
+
+    <header class="hero">
+      <h1 class="eyebrow">˖°⋆✧ rish task tracker ✧⋆°˖</h1>
+    </header>
+
+    <section class="stats-layout">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Program</span>
+          <input id="programInput" class="stat-input" type="text" placeholder="e.g. BS Computer Engineering" />
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Date Today</span>
+          <span id="dateToday" class="stat-value"></span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Pending Tasks</span>
+          <span id="pendingTasks" class="stat-value">0</span>
+          <span class="stat-hint">new + working on it</span>
+        </div>
+
+        <div class="stat-card stat-card--count">
+          <span class="stat-label">Number of Tasks</span>
+          <span id="totalTasks" class="stat-value">0</span>
+        </div>
+      </div>
+
+      <section class="panel chart-section">
+        <h2>Task Distribution</h2>
+        <div class="chart-wrap">
+          <canvas id="courseChart"></canvas>
+          <p id="chartEmpty" class="chart-empty">Add a task to see your distribution by course.</p>
+        </div>
+      </section>
+    </section>
+
+    <section class="panel table-section">
+      <div class="table-toolbar">
+        <h2>Tasks</h2>
+        <button id="addTaskBtn" class="add-btn" type="button">+ Add Task</button>
+      </div>
+
+      <div class="table-scroll">
+        <table id="taskTable">
+          <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th class="col-date">Deadline</th>
+              <th class="col-course">Course</th>
+              <th class="col-details">Task Details</th>
+              <th class="col-status">Status</th>
+              <th class="col-days">Days Left</th>
+              <th class="col-priority">Priority</th>
+              <th class="col-notes">Notes</th>
+              <th class="col-date">Finished On</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody id="taskTableBody">
+            <!-- rows injected by js/app.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <p id="emptyState" class="empty-state" hidden>No tasks yet — click "+ Add Task" above to add your first one.</p>
+    </section>
+
+    <p id="connectionStatus" class="connection-status" role="status"></p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
