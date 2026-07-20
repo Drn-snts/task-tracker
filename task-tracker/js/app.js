@@ -71,10 +71,10 @@ onSnapshot(
     if (savingSettings) return;
     if (snap.exists()) {
       const data = snap.data();
-      if (document.activeElement !== programInput) {
+      if (programInput && document.activeElement !== programInput) {
         programInput.value = data.program || "";
       }
-      if (document.activeElement !== affirmationInput) {
+      if (affirmationInput && document.activeElement !== affirmationInput) {
         affirmationInput.value = data.affirmation || "";
       }
     }
@@ -88,11 +88,11 @@ onSnapshot(
 async function saveSettings() {
   savingSettings = true;
   try {
-    await setDoc(
-      settingsRef,
-      { program: programInput.value, affirmation: affirmationInput.value },
-      { merge: true }
-    );
+    const updates = {};
+    if (programInput) updates.program = programInput.value;
+    if (affirmationInput) updates.affirmation = affirmationInput.value;
+
+    await setDoc(settingsRef, updates, { merge: true });
   } catch (err) {
     console.error("save settings failed", err);
     showConnectionError();
@@ -106,8 +106,8 @@ function queueSaveSettings() {
   clearTimeout(settingsSaveTimer);
   settingsSaveTimer = setTimeout(saveSettings, 500);
 }
-programInput.addEventListener("input", queueSaveSettings);
-affirmationInput.addEventListener("input", queueSaveSettings);
+programInput?.addEventListener("input", queueSaveSettings);
+affirmationInput?.addEventListener("input", queueSaveSettings);
 
 // ---------------------------------------------------------------------------
 // Tasks — stored in the "tasks" collection, one document per task
