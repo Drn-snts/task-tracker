@@ -92,6 +92,7 @@ function hideApp() {
 }
 
 onAuthStateChanged(auth, (user) => {
+  console.log("Firebase auth state changed", user);
   if (user) {
     showApp();
     if (!appStarted) {
@@ -113,6 +114,7 @@ loginForm.addEventListener("submit", async (e) => {
   loginError.textContent = "";
   try {
     const userCredential = await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value);
+    console.log("Signed in successfully", userCredential.user);
     if (userCredential.user) {
       showApp();
       if (!appStarted) {
