@@ -1,6 +1,12 @@
 import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
   getFirestore,
   collection,
   doc,
@@ -16,6 +22,7 @@ import {
 // Firebase setup
 // ---------------------------------------------------------------------------
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getFirestore(app);
 
 const tasksCol = collection(db, "tasks");
@@ -24,6 +31,14 @@ const settingsRef = doc(db, "settings", "main");
 // ---------------------------------------------------------------------------
 // DOM references
 // ---------------------------------------------------------------------------
+const loginScreen = document.getElementById("loginScreen");
+const appRoot = document.getElementById("appRoot");
+const loginForm = document.getElementById("loginForm");
+const loginEmail = document.getElementById("loginEmail");
+const loginPassword = document.getElementById("loginPassword");
+const loginError = document.getElementById("loginError");
+const signOutBtn = document.getElementById("signOutBtn");
+
 const tableBody = document.getElementById("taskTableBody");
 const emptyState = document.getElementById("emptyState");
 const totalTasksEl = document.getElementById("totalTasks");
@@ -38,8 +53,6 @@ const chartEmpty = document.getElementById("chartEmpty");
 const STATUS_OPTIONS = ["New", "Working on it", "Finished"];
 const PRIORITY_OPTIONS = ["High", "Medium", "Low"];
 
-// Statuses that count toward "Pending Tasks" — change this list if you
-// want to redefine what counts as pending.
 const PENDING_STATUSES = ["New", "Working on it"];
 
 const CHART_COLORS = [
@@ -60,75 +73,117 @@ dateTodayEl.textContent = new Date().toLocaleDateString("en-US", {
 });
 
 // ---------------------------------------------------------------------------
-// Settings (Program + Affirmation) — stored in settings/main
+// Auth — show the app only once signed in; the Firestore listeners below
+// are only started after login, since the security rules now require it.
 // ---------------------------------------------------------------------------
-let savingSettings = false;
+let appStarted = false;
+let unsubscribeSettings = null;
+let unsubscribeTasks = null;
 
-onSnapshot(
-  settingsRef,
-  (snap) => {
-    clearConnectionError();
-    if (savingSettings) return;
-    if (snap.exists()) {
-      const data = snap.data();
-      if (programInput && document.activeElement !== programInput) {
-        programInput.value = data.program || "";
-      }
-      if (affirmationInput && document.activeElement !== affirmationInput) {
-        affirmationInput.value = data.affirmation || "";
-      }
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    loginScreen.hidden = true;
+    appRoot.hidden = false;
+    loginError.textContent = "";
+    if (!appStarted) {
+      appStarted = true;
+      startApp();
     }
-  },
-  (err) => {
-    console.error("settings listener error", err);
-    showConnectionError();
+  } else {
+    loginScreen.hidden = false;
+    appRoot.hidden = true;
+    appStarted = false;
+    if (unsubscribeSettings) unsubscribeSettings();
+    if (unsubscribeTasks) unsubscribeTasks();
+    unsubscribeSettings = null;
+    unsubscribeTasks = null;
   }
-);
+});
 
-async function saveSettings() {
-  savingSettings = true;
+loginForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  loginError.textContent = "";
   try {
-    const updates = {};
-    if (programInput) updates.program = programInput.value;
-    if (affirmationInput) updates.affirmation = affirmationInput.value;
-
-    await setDoc(settingsRef, updates, { merge: true });
+    await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value);
+    loginPassword.value = "";
   } catch (err) {
-    console.error("save settings failed", err);
-    showConnectionError();
-  } finally {
-    savingSettings = false;
+    console.error("sign-in failed", err);
+    loginError.textContent = "Wrong email or password.";
   }
-}
+});
 
-let settingsSaveTimer;
-function queueSaveSettings() {
-  clearTimeout(settingsSaveTimer);
-  settingsSaveTimer = setTimeout(saveSettings, 500);
-}
-programInput?.addEventListener("input", queueSaveSettings);
-affirmationInput?.addEventListener("input", queueSaveSettings);
+signOutBtn?.addEventListener("click", () => signOut(auth));
 
 // ---------------------------------------------------------------------------
-// Tasks — stored in the "tasks" collection, one document per task
+// Everything below only runs once signed in
 // ---------------------------------------------------------------------------
-onSnapshot(
-  tasksCol,
-  (snapshot) => {
-    clearConnectionError();
-    currentTasks = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-    currentTasks.sort((a, b) => {
-      if (!a.deadline) return 1;
-      if (!b.deadline) return -1;
-      return new Date(a.deadline) - new Date(b.deadline);
-    });
-    renderTasks();
-  },
-  (err) => {
-    console.error("tasks listener error", err);
-    showConnectionError();
+function startApp() {
+  let savingSettings = false;
+
+  unsubscribeSettings = onSnapshot(
+    settingsRef,
+    (snap) => {
+      clearConnectionError();
+      if (savingSettings) return;
+      if (snap.exists()) {
+        const data = snap.data();
+        if (programInput && document.activeElement !== programInput) {
+          programInput.value = data.program || "";
+        }
+        if (affirmationInput && document.activeElement !== affirmationInput) {
+          affirmationInput.value = data.affirmation || "";
+        }
+      }
+    },
+    (err) => {
+      console.error("settings listener error", err);
+      showConnectionError();
+    }
+  );
+
+  async function saveSettings() {
+    savingSettings = true;
+    try {
+      const updates = {};
+      if (programInput) updates.program = programInput.value;
+      if (affirmationInput) updates.affirmation = affirmationInput.value;
+
+      await setDoc(settingsRef, updates, { merge: true });
+    } catch (err) {
+      console.error("save settings failed", err);
+      showConnectionError();
+    } finally {
+      savingSettings = false;
+    }
   }
-);
+
+  let settingsSaveTimer;
+  function queueSaveSettings() {
+    clearTimeout(settingsSaveTimer);
+    settingsSaveTimer = setTimeout(saveSettings, 500);
+  }
+
+  programInput?.addEventListener("input", queueSaveSettings);
+  affirmationInput?.addEventListener("input", queueSaveSettings);
+
+  unsubscribeTasks = onSnapshot(
+    tasksCol,
+    (snapshot) => {
+      clearConnectionError();
+      currentTasks = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      currentTasks.sort((a, b) => {
+        if (!a.deadline) return 1;
+        if (!b.deadline) return -1;
+        return new Date(a.deadline) - new Date(b.deadline);
+      });
+      renderTasks();
+    },
+    (err) => {
+      console.error("tasks listener error", err);
+      showConnectionError();
+    }
+  );
+}
 
 function daysLeft(deadline) {
   if (!deadline) return "";
@@ -259,18 +314,12 @@ addTaskBtn.addEventListener("click", async () => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// Stats: total tasks + pending tasks (New + Working on it only)
-// ---------------------------------------------------------------------------
 function updateStats() {
   totalTasksEl.textContent = currentTasks.length;
   const pending = currentTasks.filter((t) => PENDING_STATUSES.includes(t.status)).length;
   pendingTasksEl.textContent = pending;
 }
 
-// ---------------------------------------------------------------------------
-// Chart: task distribution by course
-// ---------------------------------------------------------------------------
 function updateChart() {
   const totals = {};
   currentTasks.forEach((t) => {
@@ -307,13 +356,11 @@ function updateChart() {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Connection error banner
-// ---------------------------------------------------------------------------
 function showConnectionError() {
   connectionStatus.textContent =
     "Couldn't reach Firebase. Check js/firebase-config.js and your Firestore security rules (see README.md).";
 }
+
 function clearConnectionError() {
   connectionStatus.textContent = "";
 }
