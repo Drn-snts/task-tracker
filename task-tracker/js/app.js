@@ -80,18 +80,26 @@ let appStarted = false;
 let unsubscribeSettings = null;
 let unsubscribeTasks = null;
 
+function showApp() {
+  loginScreen.hidden = true;
+  appRoot.hidden = false;
+  loginError.textContent = "";
+}
+
+function hideApp() {
+  loginScreen.hidden = false;
+  appRoot.hidden = true;
+}
+
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    loginScreen.hidden = true;
-    appRoot.hidden = false;
-    loginError.textContent = "";
+    showApp();
     if (!appStarted) {
       appStarted = true;
       startApp();
     }
   } else {
-    loginScreen.hidden = false;
-    appRoot.hidden = true;
+    hideApp();
     appStarted = false;
     if (unsubscribeSettings) unsubscribeSettings();
     if (unsubscribeTasks) unsubscribeTasks();
@@ -104,11 +112,22 @@ loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   loginError.textContent = "";
   try {
-    await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value);
+    const userCredential = await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value);
+    if (userCredential.user) {
+      showApp();
+      if (!appStarted) {
+        appStarted = true;
+        startApp();
+      }
+    }
     loginPassword.value = "";
   } catch (err) {
     console.error("sign-in failed", err);
-    loginError.textContent = "Wrong email or password.";
+    const code = err?.code;
+    const message = code === "auth/invalid-credential" || code === "auth/wrong-password" || code === "auth/user-not-found"
+      ? "Wrong email or password."
+      : `Sign-in failed. ${code || "Please try again."}`;
+    loginError.textContent = message;
   }
 });
 
