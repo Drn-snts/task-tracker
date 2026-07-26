@@ -60,6 +60,11 @@
       </section>
     </section>
 
+    <section id="nearDuePanel" class="panel near-due">
+      <h2>Almost Due</h2>
+      <div id="nearDueBody" class="near-due-body" aria-live="polite"></div>
+    </section>
+
     <section class="panel table-section">
       <div class="table-toolbar">
         <h2>Tasks</h2>
@@ -95,6 +100,39 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <!-- Add Task Modal -->
+  <div id="addTaskModal" class="modal" hidden>
+    <div class="modal-backdrop"></div>
+    <form id="addTaskForm" class="modal-card">
+      <h3>Add Task</h3>
+      <div class="modal-row">
+        <label for="modalDeadline">Deadline</label>
+        <input id="modalDeadline" type="date" required />
+      </div>
+      <div class="modal-row">
+        <label for="modalCourse">Course</label>
+        <select id="modalCourse"></select>
+      </div>
+      <div class="modal-row">
+        <label for="modalDetails">Details</label>
+        <input id="modalDetails" type="text" required />
+      </div>
+      <div class="modal-row">
+        <label for="modalPriority">Priority</label>
+        <select id="modalPriority">
+          <option>High</option>
+          <option selected>Medium</option>
+          <option>Low</option>
+        </select>
+      </div>
+      <p id="modalError" class="modal-error" aria-live="assertive"></p>
+      <div class="modal-actions">
+        <button id="modalCancel" type="button">Cancel</button>
+        <button id="modalSave" type="submit">Add Task</button>
+      </div>
+    </form>
+  </div>
+
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

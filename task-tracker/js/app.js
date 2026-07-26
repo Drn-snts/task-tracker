@@ -50,8 +50,33 @@ const addTaskBtn = document.getElementById("addTaskBtn");
 const connectionStatus = document.getElementById("connectionStatus");
 const chartEmpty = document.getElementById("chartEmpty");
 
+// modal and near-due elements
+const addTaskModal = document.getElementById("addTaskModal");
+const addTaskForm = document.getElementById("addTaskForm");
+const modalDeadline = document.getElementById("modalDeadline");
+const modalCourse = document.getElementById("modalCourse");
+const modalDetails = document.getElementById("modalDetails");
+const modalPriority = document.getElementById("modalPriority");
+const modalError = document.getElementById("modalError");
+const modalCancel = document.getElementById("modalCancel");
+const nearDueBody = document.getElementById("nearDueBody");
+
 const STATUS_OPTIONS = ["New", "Working on it", "Finished"];
 const PRIORITY_OPTIONS = ["High", "Medium", "Low"];
+
+// Courses list (selectable)
+const COURSE_OPTIONS = [
+  "uts",
+  "sts",
+  "rph",
+  "eda",
+  "feedback",
+  "logic",
+  "hdl",
+  "data comms",
+  "cad",
+  "other",
+];
 
 const PENDING_STATUSES = ["New", "Working on it"];
 
@@ -227,7 +252,7 @@ function renderTasks() {
     tr.innerHTML = `
       <td class="id-cell">${index + 1}</td>
       <td class="col-date"><input type="date" value="${task.deadline || ""}" data-field="deadline" /></td>
-      <td class="col-course"><input type="text" value="${escapeHtml(task.course || "")}" data-field="course" placeholder="Course" /></td>
+      <td class="col-course">${buildSelect(COURSE_OPTIONS, task.course || "", "course")}</td>
       <td class="col-details"><input type="text" value="${escapeHtml(task.details || "")}" data-field="details" placeholder="Task details" /></td>
       <td class="col-status">${buildSelect(STATUS_OPTIONS, task.status, "status")}</td>
       <td class="col-days ${leftClass}">${left}</td>
@@ -270,6 +295,7 @@ function renderTasks() {
 
   updateStats();
   updateChart();
+  renderNearDue();
 }
 
 function buildSelect(options, selected, field) {
@@ -318,17 +344,65 @@ async function deleteTask(id) {
 }
 
 addTaskBtn.addEventListener("click", async () => {
+  openModal();
+});
+
+function populateCourseOptions(selectEl) {
+  if (!selectEl) return;
+  selectEl.innerHTML = COURSE_OPTIONS.map(c => `<option value="${c}">${c}</option>`).join("");
+}
+
+function openModal() {
+  populateCourseOptions(modalCourse);
+  modalDeadline.value = "";
+  modalDetails.value = "";
+  modalPriority.value = "Medium";
+  modalError.textContent = "";
+  addTaskModal.hidden = false;
+}
+
+function closeModal() {
+  addTaskModal.hidden = true;
+}
+
+modalCancel.addEventListener("click", () => closeModal());
+
+addTaskForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  modalError.textContent = "";
+  const dl = modalDeadline.value;
+  const details = modalDetails.value.trim();
+  const course = modalCourse.value || "other";
+  const priority = modalPriority.value || "Medium";
+
+  if (!dl) {
+    modalError.textContent = "Please choose a deadline.";
+    return;
+  }
+
+  const left = daysLeft(dl);
+  if (left < 0) {
+    modalError.textContent = "Deadline is in the past. Please choose a valid date.";
+    return;
+  }
+
+  if (!details) {
+    modalError.textContent = "Please add task details.";
+    return;
+  }
+
   try {
     await addDoc(tasksCol, {
-      deadline: "",
-      course: "",
-      details: "",
+      deadline: dl,
+      course,
+      details,
       status: "New",
-      priority: "Medium",
+      priority,
       notes: "",
       finishedOn: "",
       createdAt: serverTimestamp()
     });
+    closeModal();
   } catch (err) {
     console.error("add failed", err);
     showConnectionError();
@@ -375,6 +449,28 @@ function updateChart() {
     chart.data.datasets[0].backgroundColor = colors;
     chart.update();
   }
+}
+
+function renderNearDue() {
+  if (!nearDueBody) return;
+  nearDueBody.innerHTML = "";
+  const near = currentTasks.filter(t => {
+    const left = daysLeft(t.deadline);
+    return left !== "" && left >= 0 && left <= 2 && t.status !== "Finished";
+  });
+
+  if (near.length === 0) {
+    nearDueBody.innerHTML = `<span class="near-due-empty">📅</span>`;
+    return;
+  }
+
+  near.forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'near-due-item';
+    const left = daysLeft(t.deadline);
+    item.textContent = `${t.course || 'Uncategorized'} · ${t.details} · ${left}d`;
+    nearDueBody.appendChild(item);
+  });
 }
 
 function showConnectionError() {
