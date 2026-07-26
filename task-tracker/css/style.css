@@ -50,17 +50,20 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background: linear-gradient(180deg, #0f0f12 0%, #1a1a20 100%);
+  background: url("Pictures/bd24532b-f91f-41be-9b17-0ea59539d52e.jpeg") center / cover no-repeat fixed;
   color: var(--ink-900);
   font-family: var(--font-body);
   line-height: 1.4;
 }
 
-body { font-family: var(--font-body); }
+body {
+  font-family: var(--font-body);
+  background-color: #1a1a20;
+}
 
 input, button, select, textarea {
   font: inherit;
-  background-color: #fcecf3;
+  background-color: rgba(252, 236, 243, 0.9);
   color: var(--ink-900);
 }
 
@@ -153,22 +156,27 @@ input, button, select, textarea {
 /* ---------- Sign out ---------- */
 .signout-btn {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background: rgba(0, 0, 0, 0.3);
+  top: 14px;
+  right: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.16);
   color: var(--cream-50);
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
   border-radius: 999px;
-  padding: 6px 12px;
+  padding: 10px 16px;
   cursor: pointer;
   z-index: 5;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .signout-btn:hover {
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(255, 255, 255, 0.24);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
 }
 
 /* ---------- Hero ---------- */
