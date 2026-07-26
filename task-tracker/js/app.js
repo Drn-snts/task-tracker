@@ -249,16 +249,20 @@ function renderTasks() {
     const left = daysLeft(task.deadline);
     const leftClass = left !== "" && left < 0 ? "days-overdue" : "";
 
+    const isFinished = (task.status === "Finished") || Boolean(task.finishedOn);
+    const finishedDate = task.finishedOn || "";
+    const finishedLate = isFinished && task.deadline && finishedDate && (new Date(finishedDate) > new Date(task.deadline));
+
     tr.innerHTML = `
       <td class="id-cell">${index + 1}</td>
       <td class="col-date"><input type="date" value="${task.deadline || ""}" data-field="deadline" /></td>
       <td class="col-course">${buildSelect(COURSE_OPTIONS, task.course || "", "course")}</td>
-      <td class="col-details"><input type="text" value="${escapeHtml(task.details || "")}" data-field="details" placeholder="Task details" /></td>
+      <td class="col-details"><input type="text" value="${escapeHtml(task.details || "")}" data-field="details" placeholder="Task details (optional)" /></td>
       <td class="col-status">${buildSelect(STATUS_OPTIONS, task.status, "status")}</td>
       <td class="col-days ${leftClass}">${left}</td>
       <td class="col-priority">${buildSelect(PRIORITY_OPTIONS, task.priority, "priority")}</td>
       <td class="col-notes"><input type="text" value="${escapeHtml(task.notes || "")}" data-field="notes" placeholder="Notes" /></td>
-      <td class="col-date"><input type="date" value="${task.finishedOn || ""}" data-field="finishedOn" /></td>
+      <td class="col-date finished-cell">${isFinished ? `<span class="finished-badge ${finishedLate ? 'late' : 'on-time'}">${finishedLate ? `Finished late · ${finishedDate}` : 'Finished'}</span>` : `<button class="mark-done-btn" type="button">Mark done</button>`}</td>
       <td class="col-actions"><button class="delete-btn" type="button" title="Delete task">🗑</button></td>
     `;
 
@@ -285,6 +289,25 @@ function renderTasks() {
         updateTask(task.id, { [e.target.dataset.field]: e.target.value });
       });
     });
+
+    // Mark done button handling
+    const markBtn = tr.querySelector('.mark-done-btn');
+    if (markBtn) {
+      markBtn.addEventListener('click', async () => {
+        const today = new Date().toISOString().slice(0,10);
+        const isLate = task.deadline && (new Date(today) > new Date(task.deadline));
+        const confirmMsg = isLate
+          ? `This task's deadline has passed. Mark it as Finished late (${today})?`
+          : `Mark this task as Finished on time (${today})?`;
+        if (!confirm(confirmMsg)) return;
+        try {
+          await updateDoc(doc(db, 'tasks', task.id), { status: 'Finished', finishedOn: today });
+        } catch (err) {
+          console.error('mark finished failed', err);
+          showConnectionError();
+        }
+      });
+    }
 
     tr.querySelector(".delete-btn").addEventListener("click", () => {
       if (confirm("Delete this task?")) deleteTask(task.id);

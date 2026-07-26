@@ -526,6 +526,45 @@ select {
 .priority-select.priority-medium { background: var(--priority-medium-bg); color: var(--priority-medium-fg); }
 .priority-select.priority-low    { background: var(--priority-low-bg);    color: var(--priority-low-fg); }
 
+.mark-done-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.68rem;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--accent-strong), var(--pink-700));
+  color: var(--cream-50);
+  transition: transform 0.1s ease, filter 0.15s ease;
+  white-space: nowrap;
+}
+
+.mark-done-btn:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.finished-badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.finished-badge.on-time {
+  background: #d9f4d0;
+  color: #2e6b1f;
+}
+
+.finished-badge.late {
+  background: #ffe0bd;
+  color: #9a5310;
+}
+
 .delete-btn {
   border: none;
   background: transparent;
