@@ -386,10 +386,7 @@ addTaskForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  if (!details) {
-    modalError.textContent = "Please add task details.";
-    return;
-  }
+  // details are optional now
 
   try {
     await addDoc(tasksCol, {
@@ -468,7 +465,8 @@ function renderNearDue() {
     const item = document.createElement('div');
     item.className = 'near-due-item';
     const left = daysLeft(t.deadline);
-    item.textContent = `${t.course || 'Uncategorized'} · ${t.details} · ${left}d`;
+    // show task id, course, and days left (omit details)
+    item.textContent = `#${t.id} · ${t.course || 'Uncategorized'} · ${left}d`;
     nearDueBody.appendChild(item);
   });
 }
