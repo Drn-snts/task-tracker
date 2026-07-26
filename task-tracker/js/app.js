@@ -465,8 +465,11 @@ function renderNearDue() {
     const item = document.createElement('div');
     item.className = 'near-due-item';
     const left = daysLeft(t.deadline);
-    // show task id, course, and days left (omit details)
-    item.textContent = `#${t.id} · ${t.course || 'Uncategorized'} · ${left}d`;
+    // show numeric task index, course, and days left (omit details)
+    const idx = currentTasks.findIndex(x => x.id === t.id);
+    const num = idx >= 0 ? (idx + 1) : t.id;
+    const courseLabel = (t.course || 'Uncategorized').toUpperCase();
+    item.textContent = `ID#${num} · ${courseLabel} · ${left}d`;
     nearDueBody.appendChild(item);
   });
 }

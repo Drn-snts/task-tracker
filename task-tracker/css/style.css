@@ -4,11 +4,11 @@
   --pink-800: #8f3754;
   --pink-700: #c44e73;
   --pink-600: #ec739c;
-  --pink-400: #f2a6c2;
-  --pink-300: #ffd4e3;
-  --pink-200: #ffe3ee;
-  --pink-100: #fff1f6;
-  --pink-50: #fff9fc;
+  --pink-400: #d47aa3;
+  --pink-300: #c44e73; /* darker */
+  --pink-200: #ec739c;
+  --pink-100: #f2a6c2;
+  --pink-50: #ffd4e3;
   --cream-50: #fff9fc;
   --cream-100: #fff1f6;
   --cream-200: #ffd7e7;
@@ -184,8 +184,8 @@ input, button, select, textarea {
   margin-top: 12px;
   border-radius: var(--radius-md);
   padding: 12px 14px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
-  border: 1px dashed rgba(255,255,255,0.06);
+  background: linear-gradient(180deg, rgba(196,78,115,0.08), rgba(196,78,115,0.04));
+  border: 1px solid rgba(196,78,115,0.12);
 }
 .near-due-body {
   min-height: 56px;
@@ -195,7 +195,7 @@ input, button, select, textarea {
   flex-wrap: wrap;
 }
 .near-due-item {
-  background: linear-gradient(135deg, var(--pink-800), var(--pink-700));
+  background: linear-gradient(135deg, var(--pink-900), var(--pink-700));
   border-radius: 10px;
   padding: 8px 10px;
   font-weight: 700;
@@ -203,10 +203,11 @@ input, button, select, textarea {
   box-shadow: 0 6px 14px rgba(0,0,0,0.18);
 }
 .near-due-empty {
-  opacity: 0.6;
+  opacity: 0.7;
   font-size: 1.6rem;
   display: inline-block;
   padding: 6px 10px;
+  color: var(--pink-300);
 }
 
 /* Modal for adding tasks */
