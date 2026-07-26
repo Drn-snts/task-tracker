@@ -296,6 +296,11 @@ function renderTasks() {
       updateTask(task.id, { priority: e.target.value });
     });
 
+    const courseSelect = tr.querySelector('select[data-field="course"]');
+    courseSelect.addEventListener("change", (e) => {
+      updateTask(task.id, { course: e.target.value });
+    });
+
     tr.querySelectorAll("input[data-field]").forEach((input) => {
       input.addEventListener("change", (e) => {
         updateTask(task.id, { [e.target.dataset.field]: e.target.value });
