@@ -235,6 +235,41 @@ input, button, select, textarea {
 .modal-row { display:flex; flex-direction:column; gap:6px; }
 .modal-row label { font-weight:700; font-size:0.85rem; }
 .modal-row input, .modal-row select { padding:8px 10px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); }
+
+.finish-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.finish-toggle-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 999px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  background: #fcecf3;
+  color: var(--ink-900);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.76rem;
+  cursor: pointer;
+  transition: transform 0.1s ease, filter 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.finish-toggle-btn:hover {
+  filter: brightness(0.98);
+}
+
+.finish-toggle-btn.selected.finish-toggle-ontime {
+  background: #d9f4d0;
+  border-color: #4d9435;
+  color: #2e6b1f;
+}
+
+.finish-toggle-btn.selected.finish-toggle-late {
+  background: #ffe0bd;
+  border-color: #d98a2f;
+  color: #9a5310;
+}
 .modal-actions { display:flex; gap:8px; justify-content:flex-end; }
 .modal-error { color: var(--pink-300); min-height:1.2em; font-weight:700; }
 .modal-actions button { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; }

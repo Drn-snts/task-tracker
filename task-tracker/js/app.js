@@ -61,6 +61,14 @@ const modalError = document.getElementById("modalError");
 const modalCancel = document.getElementById("modalCancel");
 const nearDueBody = document.getElementById("nearDueBody");
 
+// finish-task modal elements
+const finishTaskModal = document.getElementById("finishTaskModal");
+const finishTaskForm = document.getElementById("finishTaskForm");
+const finishDateInput = document.getElementById("finishDate");
+const finishError = document.getElementById("finishError");
+const finishCancel = document.getElementById("finishCancel");
+const finishToggleBtns = finishTaskModal.querySelectorAll(".finish-toggle-btn");
+
 const STATUS_OPTIONS = ["New", "Working on it", "Finished"];
 const PRIORITY_OPTIONS = ["High", "Medium", "Low"];
 
@@ -251,7 +259,11 @@ function renderTasks() {
 
     const isFinished = (task.status === "Finished") || Boolean(task.finishedOn);
     const finishedDate = task.finishedOn || "";
-    const finishedLate = isFinished && task.deadline && finishedDate && (new Date(finishedDate) > new Date(task.deadline));
+    const finishedLate = isFinished && (
+      typeof task.finishedLate === "boolean"
+        ? task.finishedLate
+        : Boolean(task.deadline && finishedDate && (new Date(finishedDate) > new Date(task.deadline)))
+    );
 
     tr.innerHTML = `
       <td class="id-cell">${index + 1}</td>
@@ -293,19 +305,8 @@ function renderTasks() {
     // Mark done button handling
     const markBtn = tr.querySelector('.mark-done-btn');
     if (markBtn) {
-      markBtn.addEventListener('click', async () => {
-        const today = new Date().toISOString().slice(0,10);
-        const isLate = task.deadline && (new Date(today) > new Date(task.deadline));
-        const confirmMsg = isLate
-          ? `This task's deadline has passed. Mark it as Finished late (${today})?`
-          : `Mark this task as Finished on time (${today})?`;
-        if (!confirm(confirmMsg)) return;
-        try {
-          await updateDoc(doc(db, 'tasks', task.id), { status: 'Finished', finishedOn: today });
-        } catch (err) {
-          console.error('mark finished failed', err);
-          showConnectionError();
-        }
+      markBtn.addEventListener('click', () => {
+        openFinishModal(task.id);
       });
     }
 
@@ -389,6 +390,65 @@ function closeModal() {
 }
 
 modalCancel.addEventListener("click", () => closeModal());
+
+// ---------------------------------------------------------------------------
+// Finish Task modal — lets the person pick On Time / Late instead of it
+// being auto-detected from the deadline.
+// ---------------------------------------------------------------------------
+let finishTargetTaskId = null;
+let finishSelectedStatus = null; // "onTime" | "late"
+
+function openFinishModal(taskId) {
+  finishTargetTaskId = taskId;
+  finishSelectedStatus = null;
+  finishDateInput.value = new Date().toISOString().slice(0, 10);
+  finishError.textContent = "";
+  finishToggleBtns.forEach((btn) => btn.classList.remove("selected"));
+  finishTaskModal.hidden = false;
+}
+
+function closeFinishModal() {
+  finishTaskModal.hidden = true;
+  finishTargetTaskId = null;
+  finishSelectedStatus = null;
+}
+
+finishToggleBtns.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    finishToggleBtns.forEach((b) => b.classList.remove("selected"));
+    btn.classList.add("selected");
+    finishSelectedStatus = btn.dataset.value;
+    finishError.textContent = "";
+  });
+});
+
+finishCancel.addEventListener("click", () => closeFinishModal());
+
+finishTaskForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  finishError.textContent = "";
+
+  if (!finishDateInput.value) {
+    finishError.textContent = "Please choose the finished date.";
+    return;
+  }
+  if (!finishSelectedStatus) {
+    finishError.textContent = "Please select On Time or Late.";
+    return;
+  }
+
+  try {
+    await updateDoc(doc(db, "tasks", finishTargetTaskId), {
+      status: "Finished",
+      finishedOn: finishDateInput.value,
+      finishedLate: finishSelectedStatus === "late"
+    });
+    closeFinishModal();
+  } catch (err) {
+    console.error("mark finished failed", err);
+    showConnectionError();
+  }
+});
 
 addTaskForm.addEventListener("submit", async (e) => {
   e.preventDefault();

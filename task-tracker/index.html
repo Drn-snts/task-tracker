@@ -133,6 +133,30 @@
     </form>
   </div>
 
+  <!-- Finish Task Modal -->
+  <div id="finishTaskModal" class="modal" hidden>
+    <div class="modal-backdrop"></div>
+    <form id="finishTaskForm" class="modal-card">
+      <h3>Mark Task as Finished</h3>
+      <div class="modal-row">
+        <label for="finishDate">Finished On</label>
+        <input id="finishDate" type="date" required />
+      </div>
+      <div class="modal-row">
+        <label>Was it on time?</label>
+        <div class="finish-toggle" role="group" aria-label="Finished status">
+          <button type="button" class="finish-toggle-btn finish-toggle-ontime" data-value="onTime">Finished On Time</button>
+          <button type="button" class="finish-toggle-btn finish-toggle-late" data-value="late">Finished Late</button>
+        </div>
+      </div>
+      <p id="finishError" class="modal-error" aria-live="assertive"></p>
+      <div class="modal-actions">
+        <button id="finishCancel" type="button">Cancel</button>
+        <button id="finishConfirm" type="submit">Confirm</button>
+      </div>
+    </form>
+  </div>
+
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
